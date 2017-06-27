@@ -1,10 +1,17 @@
-import React from 'react';
+import _ from 'lodash';
+import React, {Component} from 'react';
 import ReactDOM from 'react-dom';
-
-
+import YTSearch from 'youtube-api-search'
+import VideoDetail from './components/video_detail'
 import SearchBar from './components/search_bar';
+import VideoList from './components/video_list';
 
 const API_KEY = 'AIzaSyBSlTi-dw31Y4AA50gAO5qLTtzzjOefXqU';
+
+
+// I will have to establish a downstream dataflow
+//  this will permit the most parent component in the application to be responsible
+
 
 //- create a new component. This component should produce some HTML
 //- I can take the idea of state a step further, 
@@ -18,13 +25,37 @@ const API_KEY = 'AIzaSyBSlTi-dw31Y4AA50gAO5qLTtzzjOefXqU';
 //  a functional component may contain a class based component, as I have used in the example below.
 
 
-const App = function(){
-	return (
-		<div>
-			<SearchBar />
-			This is working!
-		</div>
-	); 
+class App extends Component {
+	constructor(props){
+		super(props);
+		this.state = {
+			videos: [],
+			selectedVideo: null 
+		};
+
+		this.videoSearch('LMG Presents The A&R Project')
+
+	}
+		videoSearch(term){
+			YTSearch({key: API_KEY, term: term}, (videos) => {
+				this.setState({ 
+					videos: videos, 
+					selectedVideo: videos[0]
+				});
+			});
+		}
+	render(){
+		const videoSearch = _.debounce((term) => { this.videoSearch(term) }, 300);
+		return (
+			<div>
+				<SearchBar onSearchTermChange={videoSearch} />
+				<VideoDetail  video={this.state.selectedVideo} />
+				<VideoList 
+				onVideoSelect={selectedVideo => this.setState({selectedVideo}) }
+				videos={this.state.videos} />
+			</div>
+		);
+	} 
 } 
 
 
